@@ -71,6 +71,7 @@
     table {
       width: 100%;
       margin-top: 20px;
+      margin-bottom: 30px;
       border-collapse: collapse;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
@@ -102,11 +103,13 @@
     <form id="resultForm">
       <input type="text" name="code" id="code" placeholder="ادخل كود الطالب" required />
       <select id="department">
+        <option disabled selected hidden>اختر القسم</option>
         <option value="IT">قسم IT</option>
         <option value="Electronics">قسم كهرباء</option>
         <option value="Mechanical">قسم ميكانيكا</option>
       </select>
       <select id="year">
+        <option disabled selected hidden>اختر السنة الدراسية</option>
         <option value="Year1">السنة الأولى</option>
         <option value="Year2">السنة الثانية</option>
         <option value="Year3">السنة الثالثة</option>
@@ -122,7 +125,39 @@
     const resultBox = document.getElementById('resultBox');
 
     const apiKey = 'AIzaSyC7VXkWbJZDmO1bBUxnBFso8PKvMDRyKMo'; // استبدل بـ API Key الخاص بك
-    const spreadsheetId = '1fuPHQ8ez2Qrsgh-bhLtAYlkNG5cgI1HpJJ73sKDnskU'; // استبدل بـ ID الخاص بالـ Google Sheets
+    const spreadsheetId = '1L0JLewvYeEmQ0Otlec4QO_YRaIGtGABVUu9sBN5Xw8k'; // استبدل بـ ID الخاص بالـ Google Sheets
+
+    const departmentSelect = document.getElementById('department');
+    const yearSelect = document.getElementById('year');
+
+    // Store all year options (so we can reset them later)
+    const allYearOptions = Array.from(yearSelect.options);
+
+    // Disable year dropdown initially
+    yearSelect.disabled = true;
+
+    departmentSelect.addEventListener('change', function () {
+      const selectedDepartment = departmentSelect.value;
+
+      // Enable the year dropdown
+      yearSelect.disabled = false;
+
+      // Clear current options
+      yearSelect.innerHTML = '';
+
+      if (selectedDepartment === 'IT') {
+        // Show only the first 3 years
+        for (let i = 0; i < 4; i++) {
+          yearSelect.appendChild(allYearOptions[i].cloneNode(true));
+        }
+      } else {
+        // Show all 4 years
+        allYearOptions.forEach(option => {
+          yearSelect.appendChild(option.cloneNode(true));
+        });
+      }
+    });
+
 
     function loadClient() {
       gapi.client.init({
@@ -204,11 +239,27 @@
       resultBox.innerHTML = result;
     }
 
+    // form.addEventListener('submit', function(e) {
+    //   e.preventDefault();
+    //   const code = document.getElementById('code').value.trim();
+    //   const department = document.getElementById('department').value;
+    //   const year = document.getElementById('year').value;
+    //   getStudentResult(code, department, year);
+    // });
+
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+
       const code = document.getElementById('code').value.trim();
-      const department = document.getElementById('department').value;
-      const year = document.getElementById('year').value;
+      const department = departmentSelect.value;
+      const year = yearSelect.value;
+
+      // التحقق من أن جميع الحقول ممتلئة
+      if (!code || department === "اختر القسم" || year === "اختر السنة الدراسية") {
+        resultBox.innerHTML = '❌ برجاء ملء جميع الحقول قبل عرض النتيجة.';
+        return;
+      }
+
       getStudentResult(code, department, year);
     });
 
