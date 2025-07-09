@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>عرض نتيجة الطالب</title>
-  <script src="https://apis.google.com/js/api.js"></script>
 
   <style>
     body {
@@ -14,10 +13,10 @@
       padding: 0;
       display: flex;
       justify-content: center;
-      align-items: flex-start; 
+      align-items: flex-start;
       height: 100vh;
-      direction: rtl; 
-      padding-top: 20px; 
+      direction: rtl;
+      padding-top: 20px;
     }
 
     h2 {
@@ -33,7 +32,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       width: 100%;
       max-width: 400px;
-      margin-top: 10px; 
+      margin-top: 10px;
     }
 
     input[type="text"],
@@ -65,7 +64,7 @@
       margin-top: 20px;
       font-size: 18px;
       color: #333;
-      text-align: right; 
+      text-align: right;
     }
 
     table {
@@ -102,13 +101,13 @@
     <h2>عرض نتيجة الطالب</h2>
     <form id="resultForm">
       <input type="text" name="code" id="code" placeholder="ادخل كود الطالب" required />
-      <select id="department">
+      <select id="department" required>
         <option disabled selected hidden>اختر القسم</option>
         <option value="IT">قسم IT</option>
         <option value="Electronics">قسم كهرباء</option>
         <option value="Mechanical">قسم ميكانيكا</option>
       </select>
-      <select id="year">
+      <select id="year" required>
         <option disabled selected hidden>اختر السنة الدراسية</option>
         <option value="Year1">السنة الأولى</option>
         <option value="Year2">السنة الثانية</option>
@@ -124,9 +123,9 @@
     const form = document.getElementById('resultForm');
     const resultBox = document.getElementById('resultBox');
 
-    const apiKey = 'AIzaSyC7VXkWbJZDmO1bBUxnBFso8PKvMDRyKMo'; 
-    const spreadsheetId = '1L0JLewvYeEmQ0Otlec4QO_YRaIGtGABVUu9sBN5Xw8k'; 
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyZZREkCvU5c2NvpNNHqsFyTZkIp_cIeJZW-OkMIA_MLF2EjhV9whZGa37hdf1ERQ6XbQ/exec";
 
+    
     const departmentSelect = document.getElementById('department');
     const yearSelect = document.getElementById('year');
 
@@ -152,98 +151,53 @@
       }
     });
 
-
-    function loadClient() {
-      gapi.client.init({
-        'apiKey': apiKey,
-      }).then(function() {
-        console.log('Google API client loaded');
-      });
-    }
-
-    function loadAllStudentData(department, year) {
-      const cacheKey = `${department}-${year}-all`;
-
-      const cachedData = localStorage.getItem(cacheKey);
-      if (cachedData) {
-        return JSON.parse(cachedData); 
-      }
-
-      return null;
-    }
-
-    function storeAllStudentData(department, year, data) {
-      const cacheKey = `${department}-${year}-all`;
-      localStorage.setItem(cacheKey, JSON.stringify(data)); 
-    }
-
-    function getStudentResult(code, department, year) {
-      const allData = loadAllStudentData(department, year);
-      if (allData) {
-        const student = allData.find(row => row[0] === code);
-        if (student) {
-          showStudentResult(student, allData[0]);
-        } else {
-          resultBox.innerHTML = '❌ الكود غير موجود.';
-        }
-      } else {
-        resultBox.innerHTML = "جاري تحميل البيانات...";
-        const sheetName = `${department}-${year}`;
-
-        gapi.client.request({
-          path: `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!A1:Z1000`,
-        }).then(function(response) {
-          const rows = response.result.values;
-          const resultData = rows.map(row => row); 
-          
-          storeAllStudentData(department, year, resultData);
-
-          const student = resultData.find(row => row[0] === code);
-          if (student) {
-            showStudentResult(student, rows[0]); 
-          } else {
-            resultBox.innerHTML = '❌ الكود غير موجود.';
-          }
-        }).catch(function(error) {
-          resultBox.innerHTML = '❌ حدث خطأ.';
-          console.error(error);
-        });
-      }
-    }
-
-    function showStudentResult(studentData, headers) {
-      let result = `<h3>📌 الاسم: ${studentData[1]}</h3>`;
-      result += '<table>';
-      result += `<tr><th>المادة</th><th>الدرجة</th></tr>`;
-      
-      for (let j = 2; j < studentData.length; j++) {
-        if (headers[j] && headers[j].trim() !== '') {  
-          result += `<tr><td>${headers[j]}</td><td>${studentData[j]}</td></tr>`;
-        } else {
-          result += `<tr><td>المادة غير محددة</td><td>${studentData[j]}</td></tr>`;
-        }
-      }
-      result += '</table>';
-      resultBox.innerHTML = result;
-    }
-
-
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', function (e) {
       e.preventDefault();
 
       const code = document.getElementById('code').value.trim();
-      const department = departmentSelect.value;
-      const year = yearSelect.value;
+      const department = document.getElementById('department').value;
+      const year = document.getElementById('year').value;
 
-      if (!code || department === "اختر القسم" || year === "اختر السنة الدراسية") {
-        resultBox.innerHTML = '❌ برجاء ملء جميع الحقول قبل عرض النتيجة.';
+      if (!code || !department || !year) {
+        resultBox.innerHTML = "❌ برجاء ملء جميع الحقول.";
         return;
       }
 
       getStudentResult(code, department, year);
     });
 
-    gapi.load('client', loadClient);
+    function getStudentResult(code, department, year) {
+      resultBox.innerHTML = "⏳ جاري تحميل النتيجة...";
+
+      const sheetName = `${department}-${year}`;
+
+      fetch(`${scriptURL}?sheet=${sheetName}&code=${code}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.name) {
+            showStudentResult(data.name, data.grades);
+          } else {
+            resultBox.innerHTML = "❌ الكود غير موجود.";
+          }
+        })
+        .catch(error => {
+          console.error(error);
+          resultBox.innerHTML = "❌ حدث خطأ أثناء تحميل النتيجة.";
+        });
+    }
+
+    function showStudentResult(name, grades) {
+      let result = `<h3>📌 الاسم: ${name}</h3>`;
+      result += '<table>';
+      result += '<tr><th>المادة</th><th>الدرجة</th></tr>';
+
+      for (const item of grades) {
+        result += `<tr><td>${item.subject}</td><td>${item.mark}</td></tr>`;
+      }
+
+      result += '</table>';
+      resultBox.innerHTML = result;
+    }
   </script>
 </body>
 </html>
