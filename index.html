@@ -101,12 +101,14 @@
     <h2>عرض نتيجة الطالب</h2>
     <form id="resultForm">
       <input type="text" name="code" id="code" placeholder="ادخل كود الطالب" required />
+      
       <select id="department" required>
         <option disabled selected hidden>اختر القسم</option>
         <option value="IT">قسم IT</option>
         <option value="Electronics">قسم كهرباء</option>
         <option value="Mechanical">قسم ميكانيكا</option>
       </select>
+      
       <select id="year" required>
         <option disabled selected hidden>اختر السنة الدراسية</option>
         <option value="Year1">السنة الأولى</option>
@@ -114,6 +116,14 @@
         <option value="Year3">السنة الثالثة</option>
         <option value="Year4">السنة الرابعة</option>
       </select>
+
+      <!-- الخانة الجديدة لاختيار الدور -->
+      <select id="round" required>
+        <option disabled selected hidden>اختر الدور</option>
+        <option value="">الدور الأول</option>
+        <option value="-Second">الدور الثاني</option>
+      </select>
+
       <button type="submit">عرض النتيجة</button>
     </form>
     <div id="resultBox"></div>
@@ -125,9 +135,9 @@
 
     const scriptURL = "https://script.google.com/macros/s/AKfycbyOPtWTP1B4xhG4lATOqr95-TJKc6J_JOKgtOEIWvUSmO5F_jfkx9qALfg-UCjmOSwO/exec";
 
-    
     const departmentSelect = document.getElementById('department');
     const yearSelect = document.getElementById('year');
+    const roundSelect = document.getElementById('round');
 
     const allYearOptions = Array.from(yearSelect.options);
 
@@ -157,25 +167,27 @@
       const code = document.getElementById('code').value.trim();
       const department = document.getElementById('department').value;
       const year = document.getElementById('year').value;
+      const round = document.getElementById('round').value;
 
-      if (!code || !department || !year) {
+      if (!code || !department || !year ) {
         resultBox.innerHTML = "❌ برجاء ملء جميع الحقول.";
         return;
       }
 
-      getStudentResult(code, department, year);
+      getStudentResult(code, department, year, round);
     });
 
-    function getStudentResult(code, department, year) {
+    function getStudentResult(code, department, year, round) {
       resultBox.innerHTML = "⏳ جاري تحميل النتيجة...";
 
-      const sheetName = `${department}-${year}`;
+      // اسم الشيت هيكون من القسم + السنة + الدور
+      const sheetName = `${department}-${year}${round}`;
 
       fetch(`${scriptURL}?sheet=${sheetName}&code=${code}`)
         .then(response => response.json())
         .then(data => {
           if (data.name) {
-            showStudentResult(data.name, data.grades);
+            showStudentResult(data.name, data.grades, round);
           } else {
             resultBox.innerHTML = "❌ الكود غير موجود.";
           }
@@ -186,8 +198,9 @@
         });
     }
 
-    function showStudentResult(name, grades) {
+    function showStudentResult(name, grades, round) {
       let result = `<h3>📌 الاسم: ${name}</h3>`;
+      result += `<p>🎯 الدور: ${round === "First" ? "الأول" : "الثاني"}</p>`;
       result += '<table>';
       result += '<tr><th>المادة</th><th>الدرجة</th></tr>';
 
@@ -199,5 +212,5 @@
       resultBox.innerHTML = result;
     }
   </script>
-</body>
+</body> 
 </html>
